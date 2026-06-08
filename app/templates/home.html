@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Home — AttendTrack{% endblock %}
+{% block content %}
+<div class="auth-card" style="max-width: 680px; margin: 3rem auto; text-align: center;">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <img src="/static/kyu_logo.png" alt="Kyambogo University Logo" style="height: 100px; filter: drop-shadow(0 0 10px var(--primary-glow));">
+    </div>
+    <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800;">📋 AttendTrack</h1>
+    <p class="subtitle" style="font-size: 1.15rem; margin-bottom: 2rem;">Lecture Attendance Registration System</p>
+    
+    <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 2.5rem;">
+        Kyambogo University's secure digital classroom check-in portal. Students can mark their presence using dynamic QR codes, lecturers can manage live courses, and administrators can monitor statistics.
+    </p>
+    
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; text-align: left;">
+        <div class="stat-card" style="padding: 1rem; background: var(--primary-glow); border-color: var(--primary-glow);">
+            <span class="stat-value" style="font-size: 1.25rem; color: var(--primary);">Students</span>
+            <span class="stat-label" style="font-size: 0.8rem; color: var(--text-muted);">One-click QR code check-ins and attendance history reviews.</span>
+        </div>
+        <div class="stat-card" style="padding: 1rem; background: var(--secondary-glow); border-color: var(--secondary-glow);">
+            <span class="stat-value" style="font-size: 1.25rem; color: var(--secondary);">Lecturers</span>
+            <span class="stat-label" style="font-size: 0.8rem; color: var(--text-muted);">Generate active codes, trace live logs, and export PDF/Excel charts.</span>
+        </div>
+        <div class="stat-card" style="padding: 1rem; background: var(--accent-glow); border-color: var(--accent-glow);">
+            <span class="stat-value" style="font-size: 1.25rem; color: var(--accent);">Admins</span>
+            <span class="stat-label" style="font-size: 0.8rem; color: var(--text-muted);">Structure course catalogs, register users, and inspect campus analytics.</span>
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+        <a href="{{ url_for('auth.login') }}" class="btn btn-primary" style="padding: 0.7rem 2rem; font-size: 1rem;">Sign In to Portal</a>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-outline" style="padding: 0.7rem 2rem; font-size: 1rem;">Student Registration</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<h1>System Overview</h1>
+
+<div class="stats-grid">
+    <div class="stat-card highlight">
+        <span class="stat-value">{{ overall_pct }}%</span>
+        <span class="stat-label">Overall Attendance</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ stats.students }}</span>
+        <span class="stat-label">Students</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ stats.lecturers }}</span>
+        <span class="stat-label">Lecturers</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ stats.courses }}</span>
+        <span class="stat-label">Programs (Degrees)</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ stats.course_units }}</span>
+        <span class="stat-label">Course Units</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ stats.attendance_records }}</span>
+        <span class="stat-label">Attendance Marks</span>
+    </div>
+</div>
+
+<section class="card">
+    <h2>Attendance by Program (Degree Course)</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Program</th><th>Students Enrolled</th><th>Conducted Sessions</th><th>Marks</th><th>Rate</th></tr>
+            </thead>
+            <tbody>
+                {% for c in course_stats %}
+                <tr>
+                    <td>{{ c.code }} — {{ c.name }}</td>
+                    <td>{{ c.students }}</td>
+                    <td>{{ c.sessions }}</td>
+                    <td>{{ c.marks }}</td>
+                    <td>
+                        {% set possible = c.sessions * c.students %}
+                        {% if possible %}{{ ((c.marks / possible) * 100)|round(1) }}%{% else %}—{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

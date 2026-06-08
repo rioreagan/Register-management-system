@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Live — {{ sess.title }}{% endblock %}
+{% block content %}
+<h1>{{ sess.title }}</h1>
+<p class="subtitle">{{ sess.course_name }} · Code: <code>{{ sess.session_code }}</code></p>
+
+<div class="stats-grid">
+    <div class="stat-card highlight">
+        <span class="stat-value" id="live-count">{{ attendees|length }}</span>
+        <span class="stat-label">Present Now</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value" id="live-enrolled">{{ enrolled }}</span>
+        <span class="stat-label">Enrolled Students</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value" id="live-pct">{% if enrolled %}{{ ((attendees|length / enrolled) * 100)|round(1) }}{% else %}0{% endif %}%</span>
+        <span class="stat-label">Session Attendance</span>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Attendees <span class="live-dot">● Live</span></h2>
+    <div class="table-wrap">
+        <table id="attendees-table">
+            <thead>
+                <tr><th>Name</th><th>Reg. No</th><th>Marked At</th><th>Method</th></tr>
+            </thead>
+            <tbody id="attendees-body">
+                {% for a in attendees %}
+                <tr>
+                    <td>{{ a.full_name }}</td>
+                    <td>{{ a.registration_number }}</td>
+                    <td>{{ a.marked_at[:19] }}</td>
+                    <td><span class="badge">{{ a.method }}</span></td>
+                </tr>
+                {% else %}
+                <tr id="empty-row"><td colspan="4" class="empty">Waiting for students…</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<a href="{{ url_for('lecturer.lecturer_dashboard') }}" class="btn btn-outline">← Back to Sessions</a>
+{% endblock %}
+{% block scripts %}
+<script>
+function refreshAttendees() {
+    if (typeof SESSION_ID === 'undefined') return;
+    fetch('/api/session/' + SESSION_ID + '/attendees')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            var countEl = document.getElementById('live-count');
+            var enrolledEl = document.getElementById('live-enrolled');
+            var pctEl = document.getElementById('live-pct');
+            var tbody = document.getElementById('attendees-body');
+            if (!tbody) return;
+
+            if (countEl) countEl.textContent = data.count;
+            if (enrolledEl) enrolledEl.textContent = data.enrolled;
+            if (pctEl) {
+                pctEl.textContent = data.enrolled
+                    ? Math.round((data.count / data.enrolled) * 1000) / 10 + '%'
+                    : '0%';
+            }
+
+            if (!data.attendees.length) {
+                tbody.innerHTML = '<tr id="empty-row"><td colspan="4" class="empty">Waiting for students…</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.attendees.map(function (a) {
+                return '<tr><td>' + escapeHtml(a.full_name) + '</td><td>' +
+                    escapeHtml(a.registration_number) + '</td><td>' +
+                    (a.marked_at || '').substring(0, 19) + '</td><td><span class="badge">' +
+                    escapeHtml(a.method) + '</span></td></tr>';
+            }).join('');
+        })
+        .catch(function () {});
+}
+
+function escapeHtml(s) {
+    if (!s) return '';
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+
+setInterval(refreshAttendees, 5000);
+refreshAttendees();
+</script>
+<script>
+    const SESSION_ID = {{ sess.id }};
+</script>
+{% endblock %}

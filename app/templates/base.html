@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Lecture Attendance{% endblock %}</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+    {% block head %}{% endblock %}
+<style>
+:root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --primary: #004b87; /* Kyambogo Deep Blue */
+    --primary-hover: #003d6e;
+    --primary-glow: rgba(0, 75, 135, 0.07);
+    --secondary: #d68910; /* Kyambogo Gold */
+    --secondary-hover: #b0700c;
+    --secondary-glow: rgba(214, 137, 16, 0.07);
+    --accent: #78BE20; /* Kyambogo Green */
+    --accent-glow: rgba(120, 190, 32, 0.07);
+    --success: #78BE20; /* Kyambogo Green */
+    --warning: #d68910; /* Kyambogo Gold */
+    --danger: #dc2626;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08);
+    --font: 'DM Sans', system-ui, sans-serif;
+}
+
+[data-theme="dark"] {
+    --bg: #080c14;
+    --surface: #101624;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border: #1e293b;
+    --shadow: 0 1px 3px rgba(0,0,0,.3);
+    --primary: #0077d6; /* Kyambogo Light Blue */
+    --primary-hover: #0066cc;
+    --primary-glow: rgba(0, 119, 214, 0.18);
+    --secondary: #e5b83b; /* Kyambogo Light Gold */
+    --secondary-glow: rgba(229, 184, 59, 0.12);
+    --accent: #84BD00; /* Kyambogo Green */
+    --accent-glow: rgba(132, 189, 0, 0.12);
+    --success: #84BD00; /* Kyambogo Green */
+    --warning: #e5b83b; /* Kyambogo Gold */
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    background-image: 
+        radial-gradient(at 0% 0%, var(--primary-glow) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, var(--accent-glow) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, var(--secondary-glow) 0px, transparent 50%);
+    background-attachment: fixed;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.25rem;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: .75rem 1.25rem;
+    background: var(--surface);
+    border-bottom: 3px solid var(--warning); /* Kyambogo Gold Border */
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow);
+}
+
+.brand {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    flex-wrap: wrap;
+}
+
+.nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: .9rem;
+}
+
+.nav-links a:hover { color: var(--primary); }
+
+.nav-user {
+    margin-left: auto;
+    font-size: .85rem;
+    color: var(--text-muted);
+}
+
+.nav-toggle, .theme-toggle {
+    display: none;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .4rem .6rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.theme-toggle { display: block; margin-left: .5rem; }
+
+@media (max-width: 768px) {
+    .nav-toggle { display: block; }
+    .nav-links {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .nav-links.open { display: flex; }
+    .navbar { flex-wrap: wrap; }
+}
+
+/* Typography */
+h1 { font-size: 1.75rem; margin: 0 0 .25rem; }
+h2 { font-size: 1.15rem; margin: 0 0 1rem; }
+.subtitle { color: var(--text-muted); margin: 0 0 1.5rem; }
+
+/* Cards & layout */
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.stat-card.highlight {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, rgba(37,99,235,.08), transparent);
+}
+
+.stat-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.stat-label {
+    font-size: .8rem;
+    color: var(--text-muted);
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+/* Forms */
+.form label {
+    display: block;
+    font-size: .85rem;
+    font-weight: 500;
+    margin-bottom: .35rem;
+    color: var(--text-muted);
+}
+
+.form input, .form select {
+    width: 100%;
+    padding: .6rem .75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form input:focus, .form select:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 0;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0 1rem;
+}
+
+.form-actions { display: flex; align-items: flex-end; gap: .5rem; margin-bottom: 1rem; }
+
+.inline-form { display: flex; gap: .5rem; flex-wrap: wrap; }
+.inline-form input { flex: 1; margin-bottom: 0; }
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: .55rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: .9rem;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s;
+}
+
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-hover); }
+
+.btn-outline {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.btn-block { width: 100%; text-align: center; }
+.btn-sm { padding: .35rem .65rem; font-size: .8rem; }
+
+.actions { white-space: nowrap; }
+.actions .btn { margin-right: .25rem; }
+
+/* Auth */
+.auth-card {
+    max-width: 420px;
+    margin: 2rem auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.auth-footer { text-align: center; font-size: .9rem; color: var(--text-muted); }
+.auth-footer a { color: var(--primary); }
+
+.demo-box {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--bg);
+    border-radius: 8px;
+    font-size: .85rem;
+}
+
+.demo-box ul { margin: .5rem 0 0; padding-left: 1.25rem; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9rem;
+}
+
+th, td {
+    padding: .65rem .75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+th {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+/* Badges & alerts */
+.badge {
+    display: inline-block;
+    padding: .2rem .5rem;
+    border-radius: 6px;
+    font-size: .75rem;
+    background: var(--bg);
+    color: var(--text-muted);
+}
+
+.badge-success { background: var(--accent-glow); color: var(--success); }
+.badge-muted { background: var(--bg); }
+
+.alerts { margin-bottom: 1rem; }
+
+.alert {
+    padding: .75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: .5rem;
+    font-size: .9rem;
+}
+
+.alert-success { background: var(--accent-glow); color: var(--success); }
+.alert-danger { background: rgba(220,38,38,.12); color: var(--danger); }
+.alert-warning { background: var(--secondary-glow); color: var(--warning); }
+.alert-info { background: var(--primary-glow); color: var(--primary); }
+
+/* Session list */
+.session-list { display: flex; flex-direction: column; gap: .75rem; }
+
+.session-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg);
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+.meta { font-size: .8rem; color: var(--text-muted); margin: .25rem 0 0; }
+
+.hint { font-size: .85rem; color: var(--text-muted); }
+.empty { color: var(--text-muted); text-align: center; padding: 1.5rem; }
+
+/* QR */
+.qr-display { text-align: center; }
+.qr-display #qrcode { display: inline-block; margin: 1rem auto; }
+.session-code { font-size: 1.25rem; }
+
+.scan-card { text-align: center; }
+
+.live-dot {
+    color: var(--danger);
+    font-size: .8rem;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .4; }
+}
+
+.notif-list { list-style: none; padding: 0; margin: 0; }
+.notif-list li {
+    padding: .75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+.notif-list li.unread { background: rgba(37,99,235,.06); }
+
+.export-btns { display: flex; gap: .5rem; margin-top: 1rem; }
+
+.simple-list { list-style: none; padding: 0; margin-top: 1rem; }
+.simple-list li { padding: .4rem 0; border-bottom: 1px solid var(--border); }
+
+code {
+    background: var(--bg);
+    padding: .15rem .4rem;
+    border-radius: 4px;
+    font-size: .9em;
+}
+
+.filter-form { margin-bottom: 0; }
+
+</style>
+</head>
+<body>
+    {% if current_user %}
+    <nav class="navbar">
+        <a href="{{ url_for('auth.dashboard') }}" class="brand">📋 AttendTrack</a>
+        <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+        <div class="nav-links">
+            {% if current_user.role == 'student' %}
+            <a href="{{ url_for('student.student_dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('student.student_scan') }}">Scan QR</a>
+            <a href="{{ url_for('student.student_history') }}">History</a>
+            {% elif current_user.role == 'lecturer' %}
+            <a href="{{ url_for('lecturer.lecturer_dashboard') }}">Sessions</a>
+            <a href="{{ url_for('lecturer.lecturer_reports') }}">Reports</a>
+            {% elif current_user.role == 'admin' %}
+            <a href="{{ url_for('admin.admin_dashboard') }}">Overview</a>
+            <a href="{{ url_for('admin.admin_users') }}">Users</a>
+            <a href="{{ url_for('admin.admin_courses') }}">Academic Layout</a>
+            {% endif %}
+            <span class="nav-user">{{ current_user.full_name }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline">Logout</a>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">🌙</button>
+    </nav>
+    {% endif %}
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="alerts">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+<script>
+function toggleTheme() {
+    const html = document.documentElement;
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    const btn = document.querySelector('.theme-toggle');
+    if (btn) btn.textContent = next === 'dark' ? '☀️' : '🌙';
+}
+
+(function initTheme() {
+    const saved = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = saved || (prefersDark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+    const btn = document.querySelector('.theme-toggle');
+    if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+})();
+
+</script>
+</body>
+</html>

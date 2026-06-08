@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}QR — {{ sess.title }}{% endblock %}
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+{% endblock %}
+{% block content %}
+<h1>Session QR Code</h1>
+<p class="subtitle">{{ sess.title }} — Students scan this to mark attendance</p>
+
+<div class="card qr-display">
+    <div id="qrcode"></div>
+    <p class="session-code" style="font-size: 1.5rem; margin-top: 1rem;">
+        OTP: <strong id="otp-display" style="font-family: monospace; color: var(--primary);">{{ initial_token }}</strong>
+    </p>
+    <p class="session-code">Session Code: <strong>{{ sess.session_code }}</strong></p>
+    
+    <div style="max-width: 200px; margin: 1rem auto 0; background: rgba(255,255,255,0.05); height: 6px; border-radius: 3px; overflow: hidden;">
+        <div id="progress-bar" style="background: var(--primary); height: 100%; width: 100%; transition: width 1s linear;"></div>
+    </div>
+    <p class="hint" id="timer-text" style="margin-top: 0.5rem;">Code expires in {{ sec_rem }}s</p>
+</div>
+<a href="{{ url_for('lecturer.session_live', session_id=sess.id) }}" class="btn btn-primary">View Live Attendance</a>
+<a href="{{ url_for('lecturer.lecturer_dashboard') }}" class="btn btn-outline">← Back</a>
+{% endblock %}
+{% block scripts %}
+<script>
+    var qrcode = new QRCode(document.getElementById("qrcode"), {
+        text: "{{ sess.session_code }}-{{ initial_token }}",
+        width: 256,
+        height: 256,
+        colorDark: "#1e293b",
+        colorLight: "#ffffff",
+    });
+
+    var sessId = {{ sess.id }};
+    var baseCode = "{{ sess.session_code }}";
+
+    // Set initial progress bar width
+    var initialRem = {{ sec_rem }};
+    document.getElementById('progress-bar').style.width = (initialRem / 30 * 100) + '%';
+
+    function updateDynamicQR() {
+        fetch('/api/session/' + sessId + '/dynamic_code')
+            .then(r => r.json())
+            .then(data => {
+                var combinedCode = baseCode + "-" + data.dynamic_token;
+                qrcode.clear();
+                qrcode.makeCode(combinedCode);
+                
+                document.getElementById('otp-display').textContent = data.dynamic_token;
+                
+                var rem = data.seconds_remaining;
+                document.getElementById('timer-text').textContent = 'Code expires in ' + rem + 's';
+                document.getElementById('progress-bar').style.width = (rem / 30 * 100) + '%';
+            })
+            .catch(err => console.error(err));
+    }
+
+    setInterval(function() {
+        var timerText = document.getElementById('timer-text');
+        var bar = document.getElementById('progress-bar');
+        var match = timerText.textContent.match(/\d+/);
+        if (match) {
+            var rem = parseInt(match[0]) - 1;
+            if (rem <= 0) {
+                updateDynamicQR();
+            } else {
+                timerText.textContent = 'Code expires in ' + rem + 's';
+                bar.style.width = (rem / 30 * 100) + '%';
+            }
+        }
+    }, 1000);
+</script>
+{% endblock %}

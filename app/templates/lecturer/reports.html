@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Attendance Reports{% endblock %}
+{% block content %}
+<h1>Attendance Reports</h1>
+
+<div class="card">
+    <form method="GET" class="form form-grid filter-form">
+        <div>
+            <label>Course Unit</label>
+            <select name="course_unit_id">
+                <option value="">All units</option>
+                {% for cu in course_units %}
+                <option value="{{ cu.id }}" {% if filters.course_unit_id|string == cu.id|string %}selected{% endif %}>{{ cu.code }} — {{ cu.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>From Date</label>
+            <input type="date" name="date_from" value="{{ filters.date_from }}">
+        </div>
+        <div>
+            <label>To Date</label>
+            <input type="date" name="date_to" value="{{ filters.date_to }}">
+        </div>
+        <div>
+            <label>Student (name or reg no)</label>
+            <input type="text" name="student" value="{{ filters.student }}" placeholder="Search…">
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="{{ url_for('lecturer.lecturer_reports') }}" class="btn btn-outline">Clear</a>
+        </div>
+    </form>
+    <div class="export-btns">
+        <a href="{{ url_for('lecturer.export_reports', fmt='pdf', course_unit_id=filters.course_unit_id, date_from=filters.date_from, date_to=filters.date_to, student=filters.student) }}" class="btn btn-sm">Export PDF</a>
+        <a href="{{ url_for('lecturer.export_reports', fmt='excel', course_unit_id=filters.course_unit_id, date_from=filters.date_from, date_to=filters.date_to, student=filters.student) }}" class="btn btn-sm">Export Excel</a>
+    </div>
+</div>
+
+{% if records %}
+<div class="table-wrap card">
+    <table>
+        <thead>
+            <tr><th>Lecture</th><th>Date</th><th>Program</th><th>Unit</th><th>Student</th><th>Reg No</th><th>Marked At</th><th>Method</th></tr>
+        </thead>
+        <tbody>
+            {% for r in records %}
+            <tr>
+                <td>{{ r.title }}</td>
+                <td>{{ r.start_time[:10] }}</td>
+                <td>{{ r.course_code }}</td>
+                <td>{{ r.course_name }}</td>
+                <td>{{ r.full_name }}</td>
+                <td>{{ r.registration_number }}</td>
+                <td>{{ r.marked_at[:19] }}</td>
+                <td><span class="badge">{{ r.method }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<p class="hint">{{ records|length }} record(s) found</p>
+{% else %}
+<p class="empty card">No records match your filters.</p>
+{% endif %}
+{% endblock %}

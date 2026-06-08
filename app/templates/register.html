@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Register — AttendTrack{% endblock %}
+{% block content %}
+<div class="auth-card">
+    <div style="text-align: center; margin-bottom: 1rem;">
+        <img src="/static/kyu_logo.png" alt="Kyambogo University Logo" style="height: 70px; filter: drop-shadow(0 0 8px var(--primary-glow));">
+    </div>
+    <h1 style="background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; font-size: 1.8rem; margin-bottom: 0.5rem;">Student Registration</h1>
+    <p class="subtitle" style="margin-bottom: 1.5rem;">Create your account to mark lecture attendance</p>
+    <form method="POST" class="form">
+        <label>Full Name</label>
+        <input type="text" name="full_name" required placeholder="John Doe">
+        <label>Registration Number</label>
+        <input type="text" name="registration_number" required placeholder="REG2024001">
+        <label>Email</label>
+        <input type="email" name="email" required placeholder="john@university.edu">
+        <label>Degree Program (Course)</label>
+        <select name="course_id" required>
+            <option value="">Select program</option>
+            {% for c in courses %}
+            <option value="{{ c.id }}">{{ c.code }} — {{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <label>Password</label>
+        <input type="password" name="password" required minlength="6" placeholder="Min. 6 characters">
+        <button type="submit" class="btn btn-primary btn-block">Register</button>
+    </form>
+    <p class="auth-footer">Already registered? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+</div>
+{% endblock %}

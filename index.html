@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LARS | Lecture Attendance Registration System</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Styling Sheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- jsPDF & SheetJS CDNs for Premium Exports -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
+  <!-- Chart.js CDN for Interactive Graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Lucide Icons Vector Pack -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="dark-mode">
+
+  <!-- Unified App Container Shell -->
+  <div id="app-container">
+    
+    <!-- Top Premium Navbar -->
+    <nav class="navbar" id="main-nav" style="display: none;">
+      <div class="navbar-brand" onclick="navigate(currentUser.role === 'student' ? 'student-dashboard' : currentUser.role === 'lecturer' ? 'lecturer-dashboard' : 'admin-dashboard')">
+        <i data-lucide="graduation-cap"></i> LARS
+      </div>
+      <div class="nav-actions">
+        <!-- Theme Toggle Switch -->
+        <button class="theme-toggle" id="btn-theme-toggle" onclick="toggleTheme()" title="Switch Light/Dark Theme">
+          <i data-lucide="sun"></i>
+        </button>
+        <!-- Dynamic User Identity Badge -->
+        <div class="user-badge">
+          <div class="user-avatar" id="nav-user-avatar">U</div>
+          <span style="font-weight: 600; font-size: 0.9rem;" id="nav-user-name">User Name</span>
+          <span style="font-size: 0.7rem; padding: 2px 8px; background: var(--border-glass); border-radius: 10px; font-weight: bold; color: var(--primary);" id="nav-user-role">ROLE</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="logout()" title="Logout">
+          <i data-lucide="log-out"></i> Logout
+        </button>
+      </div>
+    </nav>
+    
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- ============================================== -->
+    <!-- 0. SYSTEM HOME PAGE                            -->
+    <!-- ============================================== -->
+    <div id="home-screen" class="app-screen auth-container animate-fade" style="display: block; max-width: 800px; margin: 0 auto; padding: 24px;">
+      <div class="glass-card text-center" style="padding: 48px 32px; border-color: var(--primary-glow);">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <img src="static/kyu_logo.png" alt="Kyambogo University Logo" style="height: 110px; filter: drop-shadow(0 0 12px var(--primary-glow));">
+        </div>
+        <div class="auth-logo" style="font-size: 3rem; margin-bottom: 16px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          <i data-lucide="graduation-cap" style="vertical-align: middle; margin-right: 8px; width: 48px; height: 48px; color: var(--primary);"></i> LARS
+        </div>
+        <h2 style="font-family: var(--font-display); font-weight: 800; font-size: 2.2rem; margin-bottom: 12px; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          Lecture Attendance Registration System
+        </h2>
+        <p class="text-secondary" style="font-size: 1.1rem; line-height: 1.6; max-width: 600px; margin: 0 auto 32px;">
+          Kyambogo University's digital classroom portal. Generating dynamic session QR codes, automating check-ins, monitoring metrics, and generating reports.
+        </p>
+
+        <!-- Feature highlights grid -->
+        <div class="stats-grid animate-fade" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 40px; text-align: left;">
+          <div class="glass-card" style="padding: 20px; background: var(--bg-glass);">
+            <div class="stat-icon" style="width: 36px; height: 36px; margin-bottom: 12px; background: var(--primary-glow); color: var(--primary);"><i data-lucide="user"></i></div>
+            <h4 style="font-family: var(--font-display); font-weight: 700; margin-bottom: 6px; font-size: 1.1rem;">Students</h4>
+            <p class="text-secondary" style="font-size: 0.85rem; line-height: 1.45;">Mark secure check-ins via QR codes or manual entry and track attendance histories.</p>
+          </div>
+          <div class="glass-card" style="padding: 20px; background: var(--bg-glass);">
+            <div class="stat-icon" style="width: 36px; height: 36px; margin-bottom: 12px; background: var(--secondary-glow); color: var(--secondary);"><i data-lucide="award"></i></div>
+            <h4 style="font-family: var(--font-display); font-weight: 700; margin-bottom: 6px; font-size: 1.1rem;">Lecturers</h4>
+            <p class="text-secondary" style="font-size: 0.85rem; line-height: 1.45;">Initiate lecture sessions, output scanning QR codes, track live queues, and compile exports.</p>
+          </div>
+          <div class="glass-card" style="padding: 20px; background: var(--bg-glass);">
+            <div class="stat-icon" style="width: 36px; height: 36px; margin-bottom: 12px; background: var(--accent-glow); color: var(--accent);"><i data-lucide="shield"></i></div>
+            <h4 style="font-family: var(--font-display); font-weight: 700; margin-bottom: 6px; font-size: 1.1rem;">Administrators</h4>
+            <p class="text-secondary" style="font-size: 0.85rem; line-height: 1.45;">Govern academic directories, modify course listings, and inspect dynamic campus analytics.</p>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="navigate('login')" style="padding: 14px 36px; font-size: 1.05rem;">
+          <i data-lucide="arrow-right-circle"></i> Access Portal Login
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 1. SECURE LOGIN SCREEN                         -->
+    <!-- ============================================== -->
+    <div id="login-screen" class="app-screen auth-container" style="display: none;">
+      <div class="glass-card auth-card animate-scale">
+        <div style="text-align: center; margin-bottom: 16px;">
+          <img src="static/kyu_logo.png" alt="Kyambogo University Logo" style="height: 80px; filter: drop-shadow(0 0 8px var(--primary-glow));">
+        </div>
+        <div class="auth-logo" style="background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          <i data-lucide="graduation-cap" style="vertical-align: middle; margin-right: 6px;"></i> LARS
+        </div>
+        <p class="auth-desc">Lecture Attendance Portal</p>
+        
+        <form id="login-form">
+          <div class="form-group">
+            <label class="form-label" for="login-id">Email Address or Registration Number</label>
+            <input type="text" id="login-id" class="form-control" placeholder="e.g., student@student.edu or S2026-001" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-pass">Security Password</label>
+            <input type="password" id="login-pass" class="form-control" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+            <i data-lucide="shield-check"></i> Sign In Securely
+          </button>
+        </form>
+        
+        <div class="auth-footer" style="display: flex; flex-direction: column; gap: 8px;">
+          <div>Are you a new student? <a href="#" class="auth-link" onclick="navigate('register')">Register here</a></div>
+          <div><a href="#" class="auth-link" onclick="navigate('forgot')">Forgot Password?</a></div>
+        </div>
+        
+        <!-- Interactive evaluation assistant panel -->
+        <div style="margin-top: 32px; border-top: 1px solid var(--border-glass); padding-top: 16px; text-align: left;">
+          <h4 style="font-size: 0.8rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Evaluation Logins (Password: 123)</h4>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('login-id').value='alice@student.edu'; document.getElementById('login-pass').value='123'; showToast('Alice Vance credentials pre-filled.', 'info')" style="padding: 6px 12px; font-size: 0.8rem; justify-content: flex-start; width: 100%;">
+              <i data-lucide="user"></i> Student: alice@student.edu
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('login-id').value='smith@university.edu'; document.getElementById('login-pass').value='123'; showToast('Dr. Smith credentials pre-filled.', 'info')" style="padding: 6px 12px; font-size: 0.8rem; justify-content: flex-start; width: 100%;">
+              <i data-lucide="user-check"></i> Lecturer: smith@university.edu
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('login-id').value='admin@university.edu'; document.getElementById('login-pass').value='admin'; showToast('Administrator credentials pre-filled.', 'info')" style="padding: 6px 12px; font-size: 0.8rem; justify-content: flex-start; width: 100%;">
+              <i data-lucide="key"></i> Admin: admin@university.edu (pass: admin)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 2. STUDENT REGISTRATION VIEW                   -->
+    <!-- ============================================== -->
+    <div id="register-screen" class="app-screen auth-container" style="display: none;">
+      <div class="glass-card auth-card animate-scale">
+        <div style="text-align: center; margin-bottom: 16px;">
+          <img src="static/kyu_logo.png" alt="Kyambogo University Logo" style="height: 80px; filter: drop-shadow(0 0 8px var(--primary-glow));">
+        </div>
+        <div class="auth-logo" style="background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">LARS</div>
+        <p class="auth-desc">Create Student Profile</p>
+        
+        <form id="register-form">
+          <div class="form-group">
+            <label class="form-label" for="reg-name">Full Name</label>
+            <input type="text" id="reg-name" class="form-control" placeholder="e.g., Alice Vance" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-no">Registration Number</label>
+            <input type="text" id="reg-no" class="form-control" placeholder="e.g., S2026-001" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-email">University Email</label>
+            <input type="email" id="reg-email" class="form-control" placeholder="alice@student.edu" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-course">Enrolled Degree Course</label>
+            <select id="reg-course" class="form-control" required>
+              <!-- Populated via Javascript -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-pass">Secure Password</label>
+            <input type="password" id="reg-pass" class="form-control" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+            Create Profile & Register
+          </button>
+        </form>
+        
+        <div class="auth-footer">
+          Already registered? <a href="#" class="auth-link" onclick="navigate('login')">Return to Sign In</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 2.5. FORGOT PASSWORD VIEW                     -->
+    <!-- ============================================== -->
+    <div id="forgot-screen" class="app-screen auth-container" style="display: none;">
+      <div class="glass-card auth-card animate-scale">
+        <div style="text-align: center; margin-bottom: 16px;">
+          <img src="static/kyu_logo.png" alt="Kyambogo University Logo" style="height: 80px; filter: drop-shadow(0 0 8px var(--primary-glow));">
+        </div>
+        <div class="auth-logo" style="background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">LARS</div>
+        <p class="auth-desc">Reset Access Password</p>
+        
+        <!-- Step 1: Verification -->
+        <form id="forgot-verify-form">
+          <div class="form-group">
+            <label class="form-label" for="forgot-email">Registered Email</label>
+            <input type="email" id="forgot-email" class="form-control" placeholder="you@university.edu" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="forgot-role">My Role</label>
+            <select id="forgot-role" class="form-control" onchange="toggleForgotRoleFields()" required>
+              <option value="student">Student</option>
+              <option value="lecturer">Lecturer</option>
+            </select>
+          </div>
+          <!-- Student only verification field -->
+          <div id="forgot-student-fields" style="display: block;">
+            <div class="form-group">
+              <label class="form-label" for="forgot-reg">Registration Number</label>
+              <input type="text" id="forgot-reg" class="form-control" placeholder="e.g., S2026-001">
+            </div>
+          </div>
+          <!-- Lecturer only verification field -->
+          <div id="forgot-lecturer-fields" style="display: none;">
+            <div class="form-group">
+              <label class="form-label" for="forgot-dept">Assigned Department</label>
+              <select id="forgot-dept" class="form-control">
+                <!-- Populated via Javascript -->
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+            Verify Identity
+          </button>
+        </form>
+
+        <!-- Step 2: Password Reset (Initially hidden) -->
+        <form id="forgot-reset-form" style="display: none;">
+          <p class="text-success" style="font-size: 0.9rem; margin-bottom: 16px;">
+            <i data-lucide="check-circle" style="vertical-align: middle; width: 16px; height: 16px;"></i> Identity verified. Enter your new password below.
+          </p>
+          <div class="form-group">
+            <label class="form-label" for="forgot-new-pass">New Security Password</label>
+            <input type="password" id="forgot-new-pass" class="form-control" placeholder="Min. 6 characters" required minlength="6">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="forgot-confirm-pass">Confirm Password</label>
+            <input type="password" id="forgot-confirm-pass" class="form-control" placeholder="••••••••" required minlength="6">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+            Update Password & Sign In
+          </button>
+        </form>
+        
+        <div class="auth-footer" style="margin-top: 24px;">
+          Remembered password? <a href="#" class="auth-link" onclick="navigate('login')">Return to Login</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 3. STUDENT DASHBOARD VIEW                      -->
+    <!-- ============================================== -->
+    <div id="student-dashboard-screen" class="app-screen" style="display: none;">
+      <div class="dashboard-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+          <ul class="sidebar-menu">
+            <li class="sidebar-item active"><i data-lucide="home"></i> Home</li>
+            <li class="sidebar-item" onclick="showToast('You are on the student home panel.', 'info')"><i data-lucide="award"></i> Certifications</li>
+            <li class="sidebar-item" onclick="showToast('Profile configuration is currently synced.', 'info')"><i data-lucide="settings"></i> Profile Settings</li>
+          </ul>
+        </aside>
+        
+        <!-- Main Dashboard View -->
+        <main class="dashboard-main">
+          <div class="dashboard-header animate-fade">
+            <div class="dashboard-title">
+              <h1>Student Dashboard</h1>
+              <p>Registered Course: <strong id="student-course-code">CODE</strong> - <span id="student-course-name">Course Title</span></p>
+              <p style="font-size: 0.85rem; margin-top: 4px;">Department: <strong id="student-dept">Dept</strong></p>
+            </div>
+            <!-- Alert badge if attendance is low -->
+            <div class="glass-card flex-gap-4" id="student-pct-card" style="padding: 12px 20px; border-left: 4px solid var(--success);">
+              <div>
+                <span class="stat-label">My Attendance Rate</span>
+                <h3 style="font-family: var(--font-display); font-weight: 800; font-size: 1.5rem;" id="student-pct">0%</h3>
+              </div>
+              <div class="stat-icon" style="width: 40px; height: 40px;"><i data-lucide="pie-chart"></i></div>
+            </div>
+          </div>
+          
+          <!-- Danger warning message for low attendance -->
+          <div class="glass-card animate-fade" id="student-warning-msg" style="border-left: 4px solid var(--danger); background: var(--danger-glow); display: none;">
+            <div class="flex-gap-4">
+              <i data-lucide="alert-triangle" class="text-danger" style="font-size: 2rem;"></i>
+              <div>
+                <h4 class="text-danger" style="font-family: var(--font-display); font-weight: 700; margin-bottom: 4px;">Attendance Warning!</h4>
+                <p style="font-size: 0.9rem;">Your attendance is currently below the mandatory university threshold of <strong>75%</strong>. Please attend the remaining lectures to avoid exam disqualification.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="grid-2col animate-fade">
+            <!-- Active session marking module -->
+            <div class="glass-card text-center flex-between" id="active-session-card" style="flex-direction: column; justify-content: center; min-height: 220px;">
+              <!-- Handled in JS -->
+            </div>
+            
+            <!-- Quick Stats Summary Card -->
+            <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+              <h3 class="mb-4">Lecture Summary</h3>
+              <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="glass-card text-center" style="padding: 16px; background: var(--bg-glass);">
+                  <span class="stat-label">Attended</span>
+                  <h2 class="text-success mt-4" style="font-size: 2rem; font-family: var(--font-display);" id="student-attended">0</h2>
+                </div>
+                <div class="glass-card text-center" style="padding: 16px; background: var(--bg-glass);">
+                  <span class="stat-label">Total Conducted</span>
+                  <h2 class="text-primary-color mt-4" style="font-size: 2rem; font-family: var(--font-display);" id="student-total">0</h2>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Lecture Logs Table -->
+          <div class="glass-card animate-fade">
+            <h3 class="mb-4">Attendance History Logs</h3>
+            <div class="table-container">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Date Conducted</th>
+                    <th>Lecture Time</th>
+                    <th>Time Submitted</th>
+                    <th>Status Badge</th>
+                  </tr>
+                </thead>
+                <tbody id="student-history-body">
+                  <!-- Loaded via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 4. LECTURER DASHBOARD VIEW                     -->
+    <!-- ============================================== -->
+    <div id="lecturer-dashboard-screen" class="app-screen" style="display: none;">
+      <div class="dashboard-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+          <ul class="sidebar-menu">
+            <li class="sidebar-item active"><i data-lucide="home"></i> Live Operations</li>
+            <li class="sidebar-item btn-open-modal" data-modal="create-session-modal"><i data-lucide="plus-circle"></i> Create Session</li>
+            <li class="sidebar-item" onclick="showToast('You are on the lecturer reports panel.', 'info')"><i data-lucide="file-text"></i> Live Reports</li>
+            <li class="sidebar-item" onclick="showToast('Settings are automatically synced with IT department.', 'info')"><i data-lucide="settings"></i> Configurations</li>
+          </ul>
+        </aside>
+        
+        <!-- Main Dashboard View -->
+        <main class="dashboard-main">
+          <div class="dashboard-header animate-fade">
+            <div class="dashboard-title">
+              <h1>Lecturer Live Station</h1>
+              <p>Manage and log classroom sessions in real time.</p>
+            </div>
+            <div>
+              <button class="btn btn-primary btn-open-modal" data-modal="create-session-modal">
+                <i data-lucide="plus"></i> Start Lecture Session
+              </button>
+            </div>
+          </div>
+          
+          <!-- Interactive Real-time monitoring card populated in JS -->
+          <div id="lecturer-active-session-box" style="display: none;">
+            <!-- Real-time Active Session UI loads here dynamically -->
+          </div>
+          
+          <!-- Master Logs Report Panel -->
+          <div class="glass-card animate-fade">
+            <div class="flex-between mb-4 flex-wrap gap-2">
+              <h3>Attendance Log & Report Generator</h3>
+              <div class="flex-gap-2">
+                <button class="btn btn-secondary btn-sm" onclick="exportReportExcel()" title="Export list to Microsoft Excel format">
+                  <i data-lucide="file-spreadsheet"></i> Export Excel
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="exportReportPDF()" title="Compile structured PDF attendance report">
+                  <i data-lucide="file-text"></i> Export PDF
+                </button>
+              </div>
+            </div>
+            
+            <!-- Filters bar -->
+            <div class="filter-bar mb-4">
+              <div class="form-group">
+                <label class="form-label" for="rep-filter-course">Degree Course</label>
+                <select id="rep-filter-course" class="form-control">
+                  <!-- Populated in JS -->
+                </select>
+              </div>
+              <div class="form-group" style="flex: 2;">
+                <label class="form-label" for="rep-search-name">Search Student Name or Reg No.</label>
+                <input type="text" id="rep-search-name" class="form-control" placeholder="Type name or reg number...">
+              </div>
+            </div>
+            
+            <div class="table-container">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Student Name</th>
+                    <th>Course Code</th>
+                    <th>Session Date</th>
+                    <th>Mark Timestamp</th>
+                    <th>Status</th>
+                    <th>Operations</th>
+                  </tr>
+                </thead>
+                <tbody id="lecturer-reports-body">
+                  <!-- Populated in JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 5. ADMINISTRATOR DASHBOARD VIEW                -->
+    <!-- ============================================== -->
+    <div id="admin-dashboard-screen" class="app-screen" style="display: none;">
+      <div class="dashboard-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+          <ul class="sidebar-menu">
+            <li class="sidebar-item active"><i data-lucide="pie-chart"></i> Campus Analytics</li>
+            <li class="sidebar-item btn-open-modal" data-modal="add-user-modal"><i data-lucide="user-plus"></i> Add Profile</li>
+            <li class="sidebar-item btn-open-modal" data-modal="add-course-modal"><i data-lucide="folder-plus"></i> Add Course</li>
+            <li class="sidebar-item" onclick="resetDatabase()"><i data-lucide="refresh-cw"></i> Reset Database</li>
+          </ul>
+        </aside>
+        
+        <!-- Main Dashboard View -->
+        <main class="dashboard-main">
+          <div class="dashboard-header animate-fade">
+            <div class="dashboard-title">
+              <h1>Campus Administrator Station</h1>
+              <p>Overview of academic registrations and general attendance analytics.</p>
+            </div>
+            <div class="flex-gap-2">
+              <button class="btn btn-secondary btn-open-modal" data-modal="add-course-modal">
+                <i data-lucide="folder-plus"></i> Add Course
+              </button>
+              <button class="btn btn-primary btn-open-modal" data-modal="add-user-modal">
+                <i data-lucide="user-plus"></i> Add User
+              </button>
+            </div>
+          </div>
+          
+          <!-- Key Metrics Grid -->
+          <div class="stats-grid animate-fade">
+            <div class="glass-card stat-card">
+              <div class="stat-info">
+                <span class="stat-label">Total Registered Students</span>
+                <h2 class="stat-value" id="stat-tot-students">0</h2>
+                <span class="stat-change up"><i data-lucide="arrow-up-right"></i> +3% this week</span>
+              </div>
+              <div class="stat-icon"><i data-lucide="users"></i></div>
+            </div>
+            
+            <div class="glass-card stat-card">
+              <div class="stat-info">
+                <span class="stat-label">Faculty Lecturers</span>
+                <h2 class="stat-value" id="stat-tot-lecturers">0</h2>
+                <span class="stat-change text-muted">All active profiles</span>
+              </div>
+              <div class="stat-icon"><i data-lucide="user-check"></i></div>
+            </div>
+            
+            <div class="glass-card stat-card">
+              <div class="stat-info">
+                <span class="stat-label">Courses Managed</span>
+                <h2 class="stat-value" id="stat-tot-courses">0</h2>
+                <span class="stat-change text-muted">4 Departments</span>
+              </div>
+              <div class="stat-icon"><i data-lucide="book-open"></i></div>
+            </div>
+            
+            <div class="glass-card stat-card" style="border-right: 4px solid var(--primary);">
+              <div class="stat-info">
+                <span class="stat-label">Overall Attendance Avg</span>
+                <h2 class="stat-value text-primary-color" id="stat-overall-avg">0%</h2>
+                <span class="stat-change up"><i data-lucide="arrow-up-right"></i> Stable</span>
+              </div>
+              <div class="stat-icon"><i data-lucide="activity"></i></div>
+            </div>
+          </div>
+          
+          <!-- Visual Analytics Layout -->
+          <div class="grid-2col animate-fade">
+            <!-- Attendance Rate Gauge Chart -->
+            <div class="glass-card text-center" style="display: flex; flex-direction: column; justify-content: space-between;">
+              <h3 class="mb-4">Global Attendance Rate</h3>
+              <div class="chart-card">
+                <canvas id="chart-overall-rate"></canvas>
+              </div>
+              <p class="text-secondary" style="font-size: 0.85rem; margin-top: 12px;">Represents the global classroom check-in percentage across all college departments.</p>
+            </div>
+            
+            <!-- Attendance Rate by Course Code -->
+            <div class="glass-card">
+              <h3 class="mb-4">Average Attendance by Course</h3>
+              <div class="chart-card">
+                <canvas id="chart-by-courses"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="glass-card animate-fade">
+            <h3 class="mb-4">Daily Attendance Trends</h3>
+            <div class="chart-card" style="height: 240px;">
+              <canvas id="chart-daily-trends"></canvas>
+            </div>
+          </div>
+          
+          <!-- Management Lists -->
+          <div class="grid-2col animate-fade">
+            <!-- User Profiles Card -->
+            <div class="glass-card">
+              <div class="flex-between mb-4">
+                <h3>Lecturer & Student Directory</h3>
+                <button class="btn btn-secondary btn-sm btn-open-modal" data-modal="add-user-modal">
+                  <i data-lucide="plus"></i> Add
+                </button>
+              </div>
+              
+              <div id="admin-user-grid" style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto; padding-right: 6px;">
+                <!-- Populated via Javascript -->
+              </div>
+            </div>
+            
+            <!-- Courses Card -->
+            <div class="glass-card">
+              <div class="flex-between mb-4">
+                <h3>Course Catalog</h3>
+                <div class="flex-gap-2">
+                  <button class="btn btn-secondary btn-sm btn-open-modal" data-modal="add-faculty-modal" style="font-size: 0.75rem; padding: 6px 10px;">
+                    + Faculty
+                  </button>
+                  <button class="btn btn-secondary btn-sm btn-open-modal" data-modal="add-department-modal" style="font-size: 0.75rem; padding: 6px 10px;">
+                    + Dept
+                  </button>
+                  <button class="btn btn-secondary btn-sm btn-open-modal" data-modal="add-course-modal" style="font-size: 0.75rem; padding: 6px 10px;">
+                    + Program
+                  </button>
+                  <button class="btn btn-secondary btn-sm btn-open-modal" data-modal="add-course-unit-modal" style="font-size: 0.75rem; padding: 6px 10px;">
+                    + Unit
+                  </button>
+                </div>
+              </div>
+              
+              <div id="admin-course-grid" style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto; padding-right: 6px;">
+                <!-- Populated via Javascript -->
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 6. MODALS POPUPS WINDOWS                       -->
+    <!-- ============================================== -->
+    
+    <!-- A. Lecturer Create Session Modal -->
+    <div id="create-session-modal" class="modal-overlay">
+      <div class="glass-card modal-content animate-scale">
+        <button class="modal-close"><i data-lucide="x"></i></button>
+        <h2 class="mb-4" style="font-family: var(--font-display);">Initialize Attendance Session</h2>
+        
+        <form id="session-form">
+          <div class="form-group">
+            <label class="form-label" for="sess-course">Degree Course</label>
+            <select id="sess-course" class="form-control" required>
+              <!-- Filled in JS -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="sess-duration">Lecture Duration</label>
+            <select id="sess-duration" class="form-control" required>
+              <option value="60">1 Hour Lecture (60 minutes)</option>
+              <option value="120">2 Hours Lecture (120 minutes)</option>
+              <option value="180">3 Hours Lecture (180 minutes)</option>
+              <option value="240">4 Hours Lecture (240 minutes)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px;">
+            <i data-lucide="zap"></i> Generate Dynamic QR Code
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    <!-- B. Lecturer Live QR Display Modal -->
+    <div id="qr-display-modal" class="modal-overlay">
+      <div class="glass-card modal-content animate-scale text-center" style="max-width: 380px;">
+        <button class="modal-close"><i data-lucide="x"></i></button>
+        <h2 class="mb-2" style="font-family: var(--font-display);">Live Session QR Code</h2>
+        <p class="text-secondary mb-3">Students must scan this code in class to log attendance.</p>
+        
+        <!-- Animated QR Card -->
+        <div class="qr-display-box" id="qr-holder">
+          <!-- Populated dynamically via qrserver API -->
+        </div>
+        
+        <p style="font-size: 1.4rem; font-weight: bold; margin-top: 16px; font-family: monospace; letter-spacing: 1px;">
+          OTP: <span id="spa-otp-display" style="color: var(--primary);">------</span>
+        </p>
+        <p class="text-secondary" style="font-size: 0.85rem; margin-top: 4px;">
+          Base Code: <strong id="spa-code-display">------</strong>
+        </p>
+        
+        <!-- Countdown visual progress bar -->
+        <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; margin-top: 16px;">
+          <div id="spa-qr-progress" style="height: 100%; width: 100%; background: var(--primary); transition: width 1s linear;"></div>
+        </div>
+        <p class="text-muted" id="spa-qr-timer" style="font-size: 0.8rem; margin-top: 6px;">Updating in 30s</p>
+      </div>
+    </div>
+    
+    <!-- C. Student Mock QR Scanner Modal -->
+    <div id="qr-scanner-modal" class="modal-overlay">
+      <div class="glass-card modal-content animate-scale text-center" style="max-width: 380px;">
+        <button class="modal-close"><i data-lucide="x"></i></button>
+        <h2 class="mb-2" style="font-family: var(--font-display);">Simulating QR Camera</h2>
+        <p class="text-secondary mb-4">Align the lecturer's QR code within the highlighted viewfinder area.</p>
+        
+        <!-- Live scanning camera visual container -->
+        <div class="scanner-video-holder">
+          <div class="scanner-overlay-aim"></div>
+          <!-- Scanning line sweep -->
+          <div class="qr-sweep-laser" style="animation-duration: 2s; background: var(--primary); box-shadow: 0 0 8px var(--primary);"></div>
+          <!-- Fake visual noise background to look like real camera feed -->
+          <div style="background: repeating-radial-gradient(circle, #1e293b, #0f172a 80px); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--primary);">
+            <i data-lucide="camera" style="font-size: 3rem; opacity: 0.3;"></i>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" id="btn-sim-scan" style="width: 100%; margin-top: 16px;">
+          <i data-lucide="scan-line"></i> Simulate Camera QR Match
+        </button>
+      </div>
+    </div>
+    
+    <!-- D. Admin Add User Profile Modal -->
+    <div id="add-user-modal" class="modal-overlay">
+      <div class="glass-card modal-content animate-scale">
+        <button class="modal-close"><i data-lucide="x"></i></button>
+        <h2 class="mb-4" style="font-family: var(--font-display);">Register Profile</h2>
+        
+        <form id="m-user-form">
+          <div class="form-group">
+            <label class="form-label" for="m-user-name">Full Name</label>
+            <input type="text" id="m-user-name" class="form-control" placeholder="e.g., Prof. Davis" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="m-user-role">Role</label>
+            <select id="m-user-role" class="form-control" onchange="toggleAdminAddUserFields()" required>
+              <option value="lecturer">Lecturer</option>
+              <option value="student">Student</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="m-user-email">Email Address</label>
+            <input type="email" id="m-user-email" class="form-control" placeholder="davis@university.edu" required>
+          </div>
+          
+          <!-- Student fields -->
+          <div id="m-user-student-fields" style="display: none;">
+            <div class="form-group">
+              <label class="form-label" for="m-user-reg">Registration Number</label>
+              <input type="text" id="m-user-reg" class="form-control" placeholder="e.g., S2026-005">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="m-user-course">Degree Program</label>
+              <select id="m-user-course" class="form-control">
+                <!-- Populated via Javascript -->
+              </select>
+            </div>
+          </div>
+          
+          <!-- Lecturer fields -->
+          <div id="m-user-lecturer-fields" style="display: block;">
+            <div class="form-group">
+              <label class="form-label" for="m-user-dept">Assigned Department</label>
+              <select id="m-user-dept" class="form-control">
+                <!-- Populated via Javascript -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="m-user-pass">Initial Password</label>
+            <input type="password" id="m-user-pass" class="form-control" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px;">
+            Save Profile Record
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- D2. Admin Edit User Profile Modal -->
+    <div id="edit-user-modal" class="modal-overlay">
+      <div class="glass-card modal-content animate-scale">
+        <button class="modal-close"><i data-lucide="x"></i></button>
+        <h2 class="mb-4" style="font-family: var(--font-display);">Edit Profile</h2>
+        
+        <form id="m-edit-user-form">
+          <input type="hidden" id="m-edit-user-id">
+          <div class="form-group">
+            <label class="form-label" for="m-edit-user-name">Full Name</label>
+            <input type="text" id="m-edit-user-name" class="form-control" placeholder="e.g., Prof. Davis" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="m-edit-user-role">Role</label>
+            <select id="m-edit-user-role" class="form-control" disabled>
+              <option value="lecturer">Lecturer</option>
+              <option value="student">Student</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="m-edit-user-email">Email Address</label>
+            <input type="email" id="m-edit-user-email" class="form-control" placeholder="davis@university.edu" required>
+          </div>
+          
+          <!-- Student fields -->
+          <div id="m-edit-user-student-fields" style="display: none;">
+            <div class="form-group">
+              <label class="form-label" for="m-edit-user-reg">Registration Number</label>
+              <input type="text" id="m-edit-user-reg" class="form-control" placeholder="e.g., S2026-005">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="m-edit-user-course">Degree Program</label>
+              <select id="m-edit-user-course" class="form-control">
+                <!-- Populated via Javascript -->
+              </select>
+            </div>
+          </div>
+          
+          <!-- Lecturer fields -->
+          <div id="m-edit-user-lecturer-fields" style="display: none;">
+            <div class="form-group">
+              <label class="form-label" for="m-edit-user-dept">Assigned Department</label>
+              <select id="m-edit-user-dept" class="form-control">
+                <!-- Populated via Javascript -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="m-edit-user-pass">Password (Leave blank to keep existing)</label>
+            <input type="password" id="m-edit-user-pass" class="form-control" placeholder="••••••••">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px;">
+            Save Profile Changes
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    <!-- E. Admin Add Course Modal -->
+    <div id="add-course-modal" class="modal-overlay">
+      <div class="glass-card modal-content animate-scale">
+        <button class="modal-close"><i data-lucide="x"></i></button>
+        <h2 class="mb-4" style="font-family: var(--font-display);">Register Degree Course</h2>
+        
+        <form id="m-course-form">
+          <div class="form-group">
+            <label class="form-label" for="m-course-name">Course Title</label>
+            <input type="text" id="m-course-name" class="form-control" placeholder="e.g., Human Computer Interaction" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="m-course-code">Course Code</label>
+            <input type="text" id="m-course-code" class="form-control" placeholder="e.g., CS-305" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="m-course-dept">College Department</label>
+            <select id="m-course-dept" class="form-control" required>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Business Administration">Business Administration</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px;">
+            Save Course Record
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- F. Admin Add Faculty Modal -->
+    <div id="add-faculty-modal" class="modal-overlay">
+      <div class="glass-card modal-content animate-scale">
+        <button class="modal-close"><i data-lucide="x"></i></button>
+        <h2 class="mb-4" style="font-family: var(--font-display);">Register Faculty</h2>
+        
+        <form id="m-faculty-form">
+          <div class="form-group">
+            <label class="form-label" for="m-faculty-name">Faculty Name</label>
+            <input type="text" id="m-faculty-name" class="form-control" placeholder="e.g., Faculty of Science" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px;">
+            Save Faculty Record
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- G. Admin Add Department Modal -->
+    <div id="add-department-modal" class="modal-overlay">
+      <div class="glass-card modal-content animate-scale">
+        <button class="modal-close"><i data-lucide="x"></i></button>
+        <h2 class="mb-4" style="font-family: var(--font-display);">Register Department</h2>
+        
+        <form id="m-department-form">
+          <div class="form-group">
+            <label class="form-label" for="m-dept-name">Department Name</label>
+            <input type="text" id="m-dept-name" class="form-control" placeholder="e.g., Department of Computer Science" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="m-dept-faculty">Assigned Faculty</label>
+            <select id="m-dept-faculty" class="form-control" required>
+              <!-- Populated via Javascript -->
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px;">
+            Save Department Record
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- H. Admin Add Course Unit Modal -->
+    <div id="add-course-unit-modal" class="modal-overlay">
+      <div class="glass-card modal-content animate-scale">
+        <button class="modal-close"><i data-lucide="x"></i></button>
+        <h2 class="mb-4" style="font-family: var(--font-display);">Register Course Unit</h2>
+        
+        <form id="m-course-unit-form">
+          <div class="form-group">
+            <label class="form-label" for="m-unit-code">Unit Code</label>
+            <input type="text" id="m-unit-code" class="form-control" placeholder="e.g., COMP-APP" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="m-unit-name">Unit Name</label>
+            <input type="text" id="m-unit-name" class="form-control" placeholder="e.g., Computer Applications" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="m-unit-course">Degree Program (Parent Course)</label>
+            <select id="m-unit-course" class="form-control" required>
+              <!-- Populated via Javascript -->
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px;">
+            Save Course Unit Record
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Database Seed and Logic Script Files -->
+  <script src="seed.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

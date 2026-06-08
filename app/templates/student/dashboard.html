@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+{% block content %}
+<h1>Hello, {{ user.full_name }}</h1>
+<p class="subtitle">{{ user.course_code }} — {{ user.course_name }} ({{ user.department_name }})</p>
+
+<div class="stats-grid">
+    <div class="stat-card highlight">
+        <span class="stat-value">{{ attendance_pct }}%</span>
+        <span class="stat-label">Attendance Rate</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ attended }}/{{ total_sessions }}</span>
+        <span class="stat-label">Sessions Attended</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value">{{ open_sessions|length }}</span>
+        <span class="stat-label">Open Units Now</span>
+    </div>
+</div>
+
+{% if attendance_pct < low_threshold and total_sessions > 0 %}
+<div class="alert alert-warning">⚠️ Your attendance is below {{ low_threshold }}%. Please attend upcoming lectures.</div>
+{% endif %}
+
+{% if notifications %}
+<section class="card">
+    <h2>Notifications</h2>
+    <ul class="notif-list">
+        {% for n in notifications %}
+        <li class="{% if not n.is_read %}unread{% endif %}">
+            {{ n.message }}
+            {% if not n.is_read %}
+            <a href="{{ url_for('student.read_notification', nid=n.id) }}" class="btn btn-sm">Dismiss</a>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+
+<section class="card">
+    <h2>Active Course Unit Check-in</h2>
+    {% if open_sessions %}
+    <div class="session-list">
+        {% for s in open_sessions %}
+        <div class="session-item">
+            <div>
+                <strong>{{ s.title }}</strong>
+                <span class="badge badge-success">{{ s.course_name }}</span>
+                <p class="meta">Ends {{ s.end_time[11:16] }}</p>
+            </div>
+            <form method="POST" action="{{ url_for('student.mark_attendance', session_id=s.id) }}" style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0;">
+                <input type="text" name="dynamic_token" placeholder="6-digit OTP" required maxlength="6" style="text-transform: uppercase; max-width: 110px; margin-bottom: 0; padding: 0.35rem 0.5rem; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 6px;">
+                <input type="hidden" name="method" value="button">
+                <button type="submit" class="btn btn-primary btn-sm">Verify OTP</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    <p class="hint">Or <a href="{{ url_for('student.student_scan') }}">scan the lecture QR code</a></p>
+    {% else %}
+    <p class="empty">No active lecture sessions right now. Check back during class time.</p>
+    {% endif %}
+</section>
+{% endblock %}

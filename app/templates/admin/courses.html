@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Academic Layout{% endblock %}
+{% block content %}
+<h1>Academic Catalog Layout</h1>
+<p class="subtitle">Govern Faculties, Departments, Programs (Degrees) and Course Units</p>
+
+<div class="grid-2">
+    <!-- 1. Add Faculty & Department -->
+    <div class="card">
+        <h2>Add Faculty</h2>
+        <form method="POST" class="form">
+            <input type="hidden" name="action" value="add_faculty">
+            <label>Faculty Name</label>
+            <input type="text" name="fac_name" placeholder="e.g. Faculty of Science" required>
+            <button type="submit" class="btn btn-primary">Add Faculty</button>
+        </form>
+        <ul class="simple-list">
+            {% for f in faculties %}<li>{{ f.name }}</li>{% endfor %}
+        </ul>
+    </div>
+    
+    <div class="card">
+        <h2>Add Department</h2>
+        <form method="POST" class="form">
+            <input type="hidden" name="action" value="add_department">
+            <label>Department Name</label>
+            <input type="text" name="dept_name" placeholder="e.g. Computer Science" required>
+            <label>Faculty</label>
+            <select name="faculty_id" required>
+                {% for f in faculties %}<option value="{{ f.id }}">{{ f.name }}</option>{% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Add Department</button>
+        </form>
+    </div>
+</div>
+
+<div class="grid-2" style="margin-top: 1.25rem;">
+    <!-- 2. Add Program (Degree) & Course Unit -->
+    <div class="card">
+        <h2>Add Degree Program (Course)</h2>
+        <form method="POST" class="form">
+            <input type="hidden" name="action" value="add_course">
+            <label>Program Code</label>
+            <input type="text" name="code" required placeholder="BITC">
+            <label>Program Title</label>
+            <input type="text" name="name" required placeholder="Bachelor of Information Technology">
+            <label>Assigned Department</label>
+            <select name="department_id" required>
+                {% for d in departments %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Add Degree Program</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Add Course Unit</h2>
+        <form method="POST" class="form">
+            <input type="hidden" name="action" value="add_course_unit">
+            <label>Unit Code</label>
+            <input type="text" name="cu_code" required placeholder="COMP-101">
+            <label>Unit Name</label>
+            <input type="text" name="cu_name" required placeholder="e.g. Computer Applications">
+            <label>Degree Program (Parent Course)</label>
+            <select name="course_id" required>
+                {% for c in courses %}<option value="{{ c.id }}">{{ c.code }} - {{ c.name }}</option>{% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Add Course Unit</button>
+        </form>
+    </div>
+</div>
+
+<div class="card table-wrap" style="margin-top: 1.25rem;">
+    <h2>Course Units Registry</h2>
+    <table>
+        <thead><tr><th>Unit Code</th><th>Unit Name</th><th>Degree Program</th><th>Department</th></tr></thead>
+        <tbody>
+            {% for cu in course_units %}
+            <tr>
+                <td><code>{{ cu.code }}</code></td>
+                <td>{{ cu.name }}</td>
+                <td>{{ cu.course_code }}</td>
+                <td>{{ cu.department_name }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

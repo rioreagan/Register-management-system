@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Attendance History{% endblock %}
+{% block content %}
+<h1>My Attendance History</h1>
+{% if records %}
+<div class="table-wrap card">
+    <table>
+        <thead>
+            <tr><th>Lecture</th><th>Course Unit</th><th>Session Date</th><th>Marked At</th><th>Method</th></tr>
+        </thead>
+        <tbody>
+            {% for r in records %}
+            <tr>
+                <td>{{ r.title }}</td>
+                <td>{{ r.course_name }}</td>
+                <td>{{ r.start_time[:16] }}</td>
+                <td>{{ r.marked_at[:19] }}</td>
+                <td><span class="badge">{{ r.method }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="empty card">No attendance records yet.</p>
+{% endif %}
+{% endblock %}

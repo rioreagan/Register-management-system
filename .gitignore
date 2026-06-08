@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+attendance.db
+.env
+*.xlsx
+*.pdf
